@@ -1,10 +1,10 @@
 from colorama import Fore, init
+from config import OMDB_API_KEY
 import random
 import requests
 
-init(autoreset=True)   # resets the colors every time the program is run
 
-OMDB_API_KEY = "396a519b"
+init(autoreset=True)   # resets the colors every time the program is run
 
 
 class MovieApp:
