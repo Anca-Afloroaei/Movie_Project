@@ -1,6 +1,8 @@
 import json
 import random
 import movie_storage
+from storage_json import StorageJson
+
 
 MOVIES_FILE = "movies.json"
 

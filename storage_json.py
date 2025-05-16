@@ -19,10 +19,10 @@ class StorageJson(IStorage):
     #     except FileNotFoundError:
     #         return {}
 
-    def _save_movies(self):
+    def _save_movies(self, movies):
         """Gets all movies as an argument and saves them to the JSON file. """
         with open(self.file_path, "w") as f:
-            json.dump(self, f, indent=4)
+            json.dump(movies, f, indent=4)
 
 
     def list_movies(self):
@@ -31,7 +31,7 @@ class StorageJson(IStorage):
         try:
             with open(self.file_path, "r") as f:
                 return json.load(f)
-        except FileNotFoundError:
+        except (FileNotFoundError, json.JSONDecodeError):
             return {}
 
 

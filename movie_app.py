@@ -1,7 +1,10 @@
 from colorama import Fore, init
 import random
+import requests
 
-init(autoreset=True)
+init(autoreset=True)   # resets the colors every time the program is run
+
+OMDB_API_KEY = "396a519b"
 
 
 class MovieApp:
@@ -36,24 +39,44 @@ class MovieApp:
             else:
                 break
 
-        while True:
-            try:
-                rating = float(input(Fore.YELLOW + "Enter rating (1-10): "))
-                if 1 <= rating <= 10:
-                    break
-                else:
-                    print(Fore.RED + "Rating must be between 1 and 10.")
-            except ValueError:
-                print(Fore.RED + "Invalid input. Enter a number.")
 
-        while True:
-            try:
-                year = int(input(Fore.YELLOW + "Enter release year: "))
-                break
-            except ValueError:
-                print(Fore.RED + "Invalid input. Enter a valid year.")
+        try:
+            url = f"http://www.omdbapi.com/?i=tt3896198&apikey={OMDB_API_KEY}&t={name}"
+            response = requests.get(url)
+            data = response.json()    # my movies.json file
 
-        poster = "N/A"  # Placeholder, since your add_movie() requires it
+            #title = data.get("Title", name)
+            year = data.get("Year")
+            rating = data.get("imdbRating")
+            poster = data.get("Poster")
+
+        except Exception as e:
+            print(Fore.RED + f"Error: {e}")
+
+
+        # while True:
+        #     try:
+        #         rating = float(input(Fore.YELLOW + "Enter rating (1-10): "))
+        #         if 1 <= rating <= 10:
+        #             break
+        #         else:
+        #             print(Fore.RED + "Rating must be between 1 and 10.")
+        #     except ValueError:
+        #         print(Fore.RED + "Invalid input. Enter a number.")
+        #
+        # while True:
+        #     try:
+        #         year = int(input(Fore.YELLOW + "Enter release year: "))
+        #         break
+        #     except ValueError:
+        #         print(Fore.RED + "Invalid input. Enter a valid year.")
+
+        #title = data.get(name)
+
+
+
+
+        #poster = "N/A"  # Placeholder, since your add_movie() requires it
         self._storage.add_movie(name, year, rating, poster)
         print(Fore.GREEN + f"{name} added successfully.")
 
@@ -151,7 +174,82 @@ class MovieApp:
 
     def generate_website(self):
         """This method is a placeholder for website generation logic."""
-        print(Fore.YELLOW + "Website generation not yet implemented.")
+        #print(Fore.YELLOW + "Website generation not yet implemented.")
+
+        movies = self._storage.list_movies()
+
+        try:
+            with open("_static/index_template.html", "r", encoding="utf-8") as template_file:
+                website_template = template_file.read()
+        except FileNotFoundError:
+            print(Fore.RED + "Website not found!")
+
+        # container for output
+        # loop through each movie in the json file - produce an html block
+
+        movie_blocks = []
+
+        # try:
+        #     url = f"http://www.omdbapi.com/?i=tt3896198&apikey={OMDB_API_KEY}"
+        #     response = requests.get(url)
+        #     data = response.json()    # my movies.json file
+        #
+        #     title = data.get("Title")
+        #     year = data.get("Year")
+        #     poster = data.get("Poster")
+        #
+        # except Exception as e:
+        #     print(Fore.RED + f"Error: {e}")
+
+
+        for name, details in movies.items():
+            try:
+                url = f"http://www.omdbapi.com/?i=tt3896198&apikey={OMDB_API_KEY}&t={name}"
+                response = requests.get(url)
+                data = response.json()  # my movies.json file
+
+                if data.get("Response") == "False":
+                    print(Fore.RED + f"Movie not found in OMDb: {data.get('Error')}")
+                    return
+
+                title = data.get("Title", name)
+                year = data.get("Year")
+                poster = data.get("Poster")
+
+            except requests.exceptions.RequestException as e:
+                print(Fore.RED + f"Error accessing OMDb API: {e}")
+
+            html_block = f"""
+            <li>
+                <div class="movie">
+                    <img class="movie-poster" src="{poster}" alt="{title} poster"/>
+                    <div class="movie-title">{title}</div>
+                    <div class ="movie-year">{year}</div>
+                </div>
+            </li>
+            """
+            movie_blocks.append(html_block)
+
+        all_movies_html = ""
+        for block in movie_blocks:
+            all_movies_html += block + "\n"
+
+        final_template = website_template.replace("__TEMPLATE_MOVIE_GRID__", all_movies_html)
+
+        try:
+            with open("_static/index.html", "w", encoding="utf-8") as template_file:
+                template_file.write(final_template)
+            print(Fore.GREEN + "Website generated successfully")
+        except Exception as e:
+            print(Fore.RED + f"Website could not be generated: {e}")
+
+
+        #print(Fore.YELLOW + "Website successfully generated")
+
+
+
+
+
 
     def run(self):
         """This method is the main program loop."""
