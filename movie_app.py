@@ -39,19 +39,30 @@ class MovieApp:
             else:
                 break
 
-
         try:
             url = f"http://www.omdbapi.com/?i=tt3896198&apikey={OMDB_API_KEY}&t={name}"
             response = requests.get(url)
             data = response.json()    # my movies.json file
 
-            #title = data.get("Title", name)
+            title = data.get("Title", name)
             year = data.get("Year")
             rating = data.get("imdbRating")
             poster = data.get("Poster")
 
-        except Exception as e:
-            print(Fore.RED + f"Error: {e}")
+            try:
+                rating = float(rating)
+            except ValueError:
+                print(Fore.YELLOW + "Invalid rating from OMDb, setting to 0.")
+                rating = 0.0
+
+            self._storage.add_movie(title, year, rating, poster)
+            print(Fore.GREEN + f"{title} added successfully.")
+
+        except requests.exceptions.RequestException as e:
+            print(Fore.RED + f"Error accessing OMDb API: {e}")
+
+        # except Exception as e:
+        #     print(Fore.RED + f"Error: {e}")
 
 
         # while True:
@@ -77,8 +88,8 @@ class MovieApp:
 
 
         #poster = "N/A"  # Placeholder, since your add_movie() requires it
-        self._storage.add_movie(name, year, rating, poster)
-        print(Fore.GREEN + f"{name} added successfully.")
+        # self._storage.add_movie(name, year, rating, poster)
+        # print(Fore.GREEN + f"{name} added successfully.")
 
     def delete_movie(self):
         """This method deletes a movie from the database."""
@@ -116,7 +127,7 @@ class MovieApp:
     def movie_stats(self):
         """This method displays movie rating statistics."""
         movies = self._storage.list_movies()
-        ratings = [details["rating"] for details in movies.values()]
+        ratings = [float(details["rating"]) for details in movies.values()]
         # ratings = []
         # for details in movies.values():
         #     ratings.append(details["rating"])
@@ -131,8 +142,8 @@ class MovieApp:
         max_rating = max(ratings)
         min_rating = min(ratings)
 
-        best = [name for name, details in movies.items() if details["rating"] == max_rating]
-        worst = [name for name, details in movies.items() if details["rating"] == min_rating]
+        best = [name for name, details in movies.items() if float(details["rating"]) == max_rating]
+        worst = [name for name, details in movies.items() if float(details["rating"]) == min_rating]
 
         print(Fore.GREEN + f"Average rating: {avg}")
         print(Fore.GREEN + f"Median rating: {median}")
@@ -167,7 +178,7 @@ class MovieApp:
     def sorted_by_rating(self):
         """This method displays movies sorted by rating descending."""
         movies = self._storage.list_movies()
-        sorted_movies = sorted(movies.items(), key=lambda x: x[1]['rating'], reverse=True)
+        sorted_movies = sorted(movies.items(), key=lambda x: float(x[1]['rating']), reverse=True)
         print(Fore.GREEN + "Movies sorted by rating:")
         for name, details in sorted_movies:
             print(Fore.BLUE + f"{name} ({details['year']}): {details['rating']}")

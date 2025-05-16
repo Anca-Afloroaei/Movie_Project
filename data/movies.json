@@ -1,8 +1,4 @@
 {
-    "Wicked": {
-        "year": "2024",
-        "rating": "7.5"
-    },
     "Enchanted": {
         "year": "2007",
         "rating": "7.1"
@@ -14,5 +10,17 @@
     "Memento": {
         "year": "2000",
         "rating": "8.4"
+    },
+    "Avatar": {
+        "year": "2009",
+        "rating": 7.9
+    },
+    "Burlesque": {
+        "year": "2010",
+        "rating": 6.4
+    },
+    "Wicked": {
+        "year": "2024",
+        "rating": 7.5
     }
 }
